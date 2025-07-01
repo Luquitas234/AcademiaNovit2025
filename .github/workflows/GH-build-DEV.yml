@@ -1,5 +1,5 @@
 # Nombre del workflow, aparecerá en la interfaz de GitHub Actions
-name: CI para Rama Development (DEV) prueba-con-secrets-de-nuevos
+name: CI para Rama Development (DEV)
 
 # Evento que dispara el workflow
 # Se ejecutará cada vez que se haga un 'push' a la rama 'development'
@@ -13,76 +13,69 @@ jobs:
   # Primer trabajo: Compilar y Ejecutar Tests Unitarios
   build_and_test:
     # Sistema operativo en el que se ejecutará este trabajo
-    # ubuntu-latest es una opción común y eficiente
     runs-on: ubuntu-latest
 
     # Pasos que se ejecutarán en este trabajo
     steps:
       # Paso 1: Checkout del código fuente del repositorio
-      # Esto clona el repositorio en el runner (máquina virtual) de GitHub Actions
       - name: Checkout del repositorio
         uses: actions/checkout@v4
 
       # Paso 2: Configurar el SDK de .NET
-      # ¡IMPORTANTE! Hemos cambiado la versión a '9.0.x' para que coincida con tu proyecto.
       - name: Configurar .NET SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x' # <--- CAMBIO AQUÍ: De 8.0.x a 9.0.x
+          dotnet-version: '9.0.x' # Asegúrate de que esta versión coincida con tu proyecto .NET
 
-      # Paso 3: Restaurar las dependencias de NuGet
-      # Descarga todos los paquetes y dependencias necesarios para el proyecto
+      # Paso 3: Restaurar las dependencias del proyecto
       - name: Restaurar dependencias de NuGet
         run: dotnet restore
 
       # Paso 4: Compilar el proyecto
-      # Este paso compila el código fuente para verificar que no haya errores de sintaxis o compilación
-      # --no-restore evita restaurar dependencias nuevamente, ya lo hicimos en el paso anterior
       - name: Compilar el proyecto
         run: dotnet build --no-restore
 
       # Paso 5: Ejecutar los tests unitarios
-      # Busca y ejecuta los proyectos de test dentro de tu solución
-      # --no-build evita recompilar, ya lo hicimos en el paso anterior
-      # --verbosity normal muestra un resumen decente de los tests
       - name: Ejecutar tests unitarios
         run: dotnet test --no-build --verbosity normal
 
       # Paso 6: Consumir un secret (ejemplo, solo para demostración de consumo)
-      # Este paso es para demostrar cómo GitHub Actions puede acceder a secrets definidos
-      # en la configuración del repositorio. NUNCA imprimas el valor real de un secret.
       - name: Usar un Secret de GitHub (ejemplo)
         run: |
           echo "Secret de ejemplo (no mostrar valor real): ${{ secrets.MY_DUMMY_SECRET }}"
-        env:
-          # Puedes definir variables de entorno específicas para este paso
-          # Asegúrate de que 'MY_DUMMY_SECRET' esté definido en los Secrets de tu repositorio GitHub
-          # Este es solo un placeholder, no necesitas un secret real llamado MY_DUMMY_SECRET a menos que tu proyecto lo use.
-          DUMMY_ENV_VAR: ${{ secrets.MY_DUMMY_SECRET }}
 
-  # Segundo trabajo: Enviar Email de Notificación
+  # Segundo trabajo: Enviar Email de Notificación (¡NUEVA IMPLEMENTACIÓN!)
   send_email_notification:
-    # Este trabajo solo se ejecutará si el trabajo 'build_and_test' ha finalizado con éxito
+    # Este trabajo solo se ejecutará si 'build_and_test' ha finalizado con éxito
     needs: build_and_test
     runs-on: ubuntu-latest
 
     steps:
-      # Paso 1: Enviar notificación por email via DebugMail
-      # Utiliza 'curl' para hacer una solicitud POST a la API de DebugMail.io
-      # Asegúrate de que 'DEBUGMAIL_API_KEY' y 'DEBUGMAIL_TO_EMAIL' estén definidos
-      # en los Secrets de tu repositorio GitHub.
-      - name: Enviar notificación por email via DebugMail
-        run: |
-          curl -X POST https://debugmail.io/api/send \
-               -H "Content-Type: application/json" \
-               -d '{
-                     "key": "${{ secrets.DEBUGMAIL_API_KEY }}",
-                     "to": "${{ secrets.DEBUGMAIL_TO_EMAIL }}",
-                     "sender": "github-actions@tudominio.com",
-                     "subject": "✅ CI Workflow Exitoso: {{github.ref_name}}",
-                     "text": "El workflow de CI en la rama {{github.ref_name}} ha finalizado exitosamente en GitHub Actions.\n\nURL del Workflow: https://github.com/{{github.repository}}/actions/runs/{{github.run_id}}"
-                   }'
-        env:
-          # GITHUB_TOKEN es un token automático proporcionado por GitHub para el workflow
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-# Trigger para nueva ejecucion
+      # Paso 1: Usar la acción 'action-send-mail'
+      - name: Enviar notificación por email
+        uses: dawidd6/action-send-mail@v3 # Usamos la acción de envío de correo
+        with:
+          # Configuración del servidor SMTP. Puedes usar un SMTP gratuito como Gmail (con App Password)
+          # o un servicio como Mailgun/SendGrid si tienes credenciales.
+          # Para simplificar, podemos usar un SMTP público si es solo para pruebas,
+          # pero lo ideal es usar un servicio con autenticación.
+          # Dado que el enunciado pide debugmail.io, usaremos sus credenciales SMTP
+          # que vimos en el XML, pero con la acción de GitHub.
+          # Host SMTP de DebugMail.io
+          server_address: app.debugmail.io
+          server_port: 25 # O 9025, según la captura que me mostraste del XML
+          # Credenciales SMTP de DebugMail.io (Inicio de sesión y Contraseña)
+          # DEBES CREAR ESTOS SECRETS EN GITHUB: DEBUGMAIL_SMTP_USERNAME y DEBUGMAIL_SMTP_PASSWORD
+          username: ${{ secrets.DEBUGMAIL_SMTP_USERNAME }}
+          password: ${{ secrets.DEBUGMAIL_SMTP_PASSWORD }}
+          # Dirección de correo del remitente
+          subject: "✅ CI Workflow Exitoso: ${{ github.ref_name }}"
+          # Dirección de correo del destinatario (ya la tienes en un secret)
+          to: ${{ secrets.DEBUGMAIL_TO_EMAIL }}
+          # Cuerpo del correo
+          body: |
+            El workflow de CI en la rama ${{ github.ref_name }} ha finalizado exitosamente en GitHub Actions.
+
+            URL del Workflow: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          # Opcional: Si quieres habilitar SSL (DebugMail decía enableSsl="false" en el XML)
+          secure: false # Basado en el XML de DebugMail, no usa SSL en el puerto 25
