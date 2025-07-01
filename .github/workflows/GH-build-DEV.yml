@@ -24,12 +24,11 @@ jobs:
         uses: actions/checkout@v4
 
       # Paso 2: Configurar el SDK de .NET
-      # Instala la versión específica de .NET que necesita tu proyecto
-      # Asegúrate de que '8.0.x' coincida con la versión de .NET de tu proyecto
+      # ¡IMPORTANTE! Hemos cambiado la versión a '9.0.x' para que coincida con tu proyecto.
       - name: Configurar .NET SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '9.0.x' # <--- CAMBIO AQUÍ: De 8.0.x a 9.0.x
 
       # Paso 3: Restaurar las dependencias de NuGet
       # Descarga todos los paquetes y dependencias necesarios para el proyecto
