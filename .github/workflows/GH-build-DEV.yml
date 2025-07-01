@@ -44,7 +44,7 @@ jobs:
         run: |
           echo "Secret de ejemplo (no mostrar valor real): ${{ secrets.MY_DUMMY_SECRET }}"
 
-  # Segundo trabajo: Enviar Email de Notificación (¡NUEVA IMPLEMENTACIÓN!)
+  # Segundo trabajo: Enviar Email de Notificación
   send_email_notification:
     # Este trabajo solo se ejecutará si 'build_and_test' ha finalizado con éxito
     needs: build_and_test
@@ -55,27 +55,17 @@ jobs:
       - name: Enviar notificación por email
         uses: dawidd6/action-send-mail@v3 # Usamos la acción de envío de correo
         with:
-          # Configuración del servidor SMTP. Puedes usar un SMTP gratuito como Gmail (con App Password)
-          # o un servicio como Mailgun/SendGrid si tienes credenciales.
-          # Para simplificar, podemos usar un SMTP público si es solo para pruebas,
-          # pero lo ideal es usar un servicio con autenticación.
-          # Dado que el enunciado pide debugmail.io, usaremos sus credenciales SMTP
-          # que vimos en el XML, pero con la acción de GitHub.
-          # Host SMTP de DebugMail.io
           server_address: app.debugmail.io
-          server_port: 25 # O 9025, según la captura que me mostraste del XML
-          # Credenciales SMTP de DebugMail.io (Inicio de sesión y Contraseña)
-          # DEBES CREAR ESTOS SECRETS EN GITHUB: DEBUGMAIL_SMTP_USERNAME y DEBUGMAIL_SMTP_PASSWORD
+          server_port: 25
           username: ${{ secrets.DEBUGMAIL_SMTP_USERNAME }}
           password: ${{ secrets.DEBUGMAIL_SMTP_PASSWORD }}
-          # Dirección de correo del remitente
+          # ¡NUEVA LÍNEA AÑADIDA! Define la dirección del remitente.
+          # Puedes usar una dirección genérica o la que DebugMail.io te sugiera/permita.
+          from: "GitHub Actions CI <no-reply@github.com>" # <--- ¡AÑADIR ESTA LÍNEA!
           subject: "✅ CI Workflow Exitoso: ${{ github.ref_name }}"
-          # Dirección de correo del destinatario (ya la tienes en un secret)
           to: ${{ secrets.DEBUGMAIL_TO_EMAIL }}
-          # Cuerpo del correo
           body: |
             El workflow de CI en la rama ${{ github.ref_name }} ha finalizado exitosamente en GitHub Actions.
 
             URL del Workflow: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          # Opcional: Si quieres habilitar SSL (DebugMail decía enableSsl="false" en el XML)
-          secure: false # Basado en el XML de DebugMail, no usa SSL en el puerto 25
+          secure: false
