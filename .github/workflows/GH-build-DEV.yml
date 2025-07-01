@@ -1,5 +1,5 @@
 # Nombre del workflow, aparecerá en la interfaz de GitHub Actions
-name: CI para Rama Development (DEV) prueba-con-secrets
+name: CI para Rama Development (DEV) prueba-con-secrets-de-nuevos
 
 # Evento que dispara el workflow
 # Se ejecutará cada vez que se haga un 'push' a la rama 'development'
