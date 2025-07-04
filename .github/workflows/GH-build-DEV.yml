@@ -13,7 +13,7 @@ jobs:
   # Primer trabajo: Compilar y Ejecutar Tests Unitarios
   build_and_test:
     # Sistema operativo en el que se ejecutará este trabajo
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 
 
     # Pasos que se ejecutarán en este trabajo
     steps:
