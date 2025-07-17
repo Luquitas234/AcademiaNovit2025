@@ -6,13 +6,13 @@ WORKDIR /src
 # Copiar el archivo de la solución (.sln) y los archivos de proyecto (.csproj)
 # Ahora, las rutas son relativas a la raíz del repositorio (el nuevo contexto de Docker).
 # Copiamos la solución y los proyectos a /src
-COPY ["AcademiaNovit.sln", "./"] # Copia la solución a la raíz de /src
-COPY ["AcademiaNovit/AcademiaNovit.csproj", "AcademiaNovit/"]
-COPY ["AcademiaNovit.Tests/AcademiaNovit.Tests.csproj", "AcademiaNovit.Tests/"]
+COPY "AcademiaNovit.sln"  "./"  
+COPY "AcademiaNovit/AcademiaNovit.csproj", "AcademiaNovit/"
+COPY "AcademiaNovit.Tests/AcademiaNovit.Tests.csproj", "AcademiaNovit.Tests/"
 
 # Restaurar las dependencias de NuGet para todos los proyectos en la solución
 # Esto es esencial para que la compilación tenga todas las bibliotecas necesarias.
-RUN dotnet restore "AcademiaNovit.sln"
+RUN dotnet restore AcademiaNovit.sln
 
 # Copiar todo el código fuente de la aplicación
 # Esto copiará el resto de los archivos de tu repositorio al contenedor.
