@@ -10,6 +10,9 @@ on:
 
 # Definición de variables de entorno para el workflow
 env:
+  # Nombre completo del repositorio en minúsculas para usar en las etiquetas de la imagen
+  # Esto será "luquitas234/academianovit2025"
+  REPO_NAME_LOWER: luquitas234/academianovit2025
   # Ruta al directorio que contiene el Dockerfile (relativa a la raíz del repositorio)
   DOCKERFILE_CONTEXT: AcademiaNovit # Ajusta esto si tu Dockerfile no está en la raíz del proyecto Web API
 
@@ -26,19 +29,12 @@ jobs:
       - name: Checkout del repositorio
         uses: actions/checkout@v4
 
-      # Paso 1.5: Set REPO_NAME_LOWER environment variable
-      - name: Set REPO_NAME_LOWER env var
-        run: |
-          echo "REPO_NAME_LOWER=$(echo '${GITHUB_REPOSITORY}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-        env:
-          GITHUB_REPOSITORY: ${{ github.repository }}
-
       # Paso 2: Configurar Docker Buildx
       - name: Configurar Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Paso 3: Login a GitHub Container Registry
-      - name: Login a GitHub Container Registry
+      # Paso 3: Login en GitHub Container Registry (GHCR)
+      - name: Login en GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -51,7 +47,7 @@ jobs:
         with:
           context: ${{ env.DOCKERFILE_CONTEXT }}
           push: true
-          # ¡CAMBIO CRÍTICO AQUÍ! Usamos la nueva variable de entorno que ya está en minúsculas.
+          # ¡CAMBIO CRÍTICO AQUÍ! Usamos la variable de entorno directamente sin interpolación de shell
           tags: |
             ghcr.io/${{ env.REPO_NAME_LOWER }}:latest
             ghcr.io/${{ env.REPO_NAME_LOWER }}:${{ github.sha }}
