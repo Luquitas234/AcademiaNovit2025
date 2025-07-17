@@ -7,8 +7,8 @@ WORKDIR /src
 # Ahora, las rutas son relativas a la raíz del repositorio (el nuevo contexto de Docker).
 # Copiamos la solución y los proyectos a /src
 COPY "AcademiaNovit.sln"  "./"  
-COPY "AcademiaNovit/AcademiaNovit.csproj", "AcademiaNovit/"
-COPY "AcademiaNovit.Tests/AcademiaNovit.Tests.csproj", "AcademiaNovit.Tests/"
+COPY "AcademiaNovit/AcademiaNovit.csproj" "AcademiaNovit/"
+COPY "AcademiaNovit.Tests/AcademiaNovit.Tests.csproj" "AcademiaNovit.Tests/"
 
 # Restaurar las dependencias de NuGet para todos los proyectos en la solución
 # Esto es esencial para que la compilación tenga todas las bibliotecas necesarias.
