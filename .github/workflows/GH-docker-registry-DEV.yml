@@ -11,10 +11,10 @@ on:
 # Definición de variables de entorno para el workflow
 env:
   # Nombre de la imagen Docker en GHCR
-  IMAGE_NAME: academianovit2025 # Puedes cambiar esto si quieres un nombre diferente para la imagen
+  # Convertimos el nombre del repositorio a minúsculas para cumplir con los requisitos de GHCR
+  IMAGE_NAME: ${{ github.event.repository.name }} 
   # Ruta al directorio que contiene el Dockerfile (relativa a la raíz del repositorio)
-  # Asegúrate de que esta ruta sea correcta. Si tu Dockerfile está en AcademiaNovit/Dockerfile, usa 'AcademiaNovit'.
-  DOCKERFILE_CONTEXT: AcademiaNovit # <--- ¡AJUSTA ESTO SI TU DOCKERFILE NO ESTÁ EN LA RAÍZ DEL PROYECTO WEB API!
+  DOCKERFILE_CONTEXT: AcademiaNovit # Ajusta esto si tu Dockerfile no está en la raíz del proyecto Web API
 
 # Definición de los trabajos (jobs)
 jobs:
@@ -29,28 +29,26 @@ jobs:
       - name: Checkout del repositorio
         uses: actions/checkout@v4
 
-      # Paso 2: Configurar Docker Buildx (para builds más eficientes y multi-plataforma)
+      # Paso 2: Configurar Docker Buildx
       - name: Configurar Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       # Paso 3: Login en GitHub Container Registry (GHCR)
-      # Esto permite que Docker se autentique para pushear la imagen.
       - name: Login en GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ github.actor }} # El usuario de GitHub que activó el workflow
-          password: ${{ secrets.GITHUB_TOKEN }} # Token automático de GitHub con permisos para GHCR
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       # Paso 4: Construir y Pushear la imagen Docker
-      # Esta acción construye la imagen usando el Dockerfile y la sube a GHCR.
       - name: Construir y Pushear imagen Docker
         uses: docker/build-push-action@v5
         with:
-          context: ${{ env.DOCKERFILE_CONTEXT }} # Ruta al directorio del Dockerfile
-          push: true # Indica que la imagen debe ser pusheada al registry
+          context: ${{ env.DOCKERFILE_CONTEXT }}
+          push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
-            ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ github.sha }} # Tag con el SHA del commit para versiones específicas
-          cache-from: type=gha # Habilita el cache de GitHub Actions para builds más rápidos
-          cache-to: type=gha,mode=max # Guarda el cache para futuras builds
+            ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
