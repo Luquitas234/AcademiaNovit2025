@@ -10,16 +10,14 @@ on:
 
 # Definición de variables de entorno para el workflow
 env:
-  # Nombre completo del repositorio en minúsculas para usar en las etiquetas de la imagen
-  # Esto será "luquitas234/academianovit2025"
-  REPO_NAME_LOWER: luquitas234/academianovit2025
   # Ruta al directorio que contiene el Dockerfile (relativa a la raíz del repositorio)
   DOCKERFILE_CONTEXT: AcademiaNovit # Ajusta esto si tu Dockerfile no está en la raíz del proyecto Web API
 
 # Definición de los trabajos (jobs)
 jobs:
   build_and_push_image:
-    runs-on: ubuntu-latest
+    # ¡CAMBIO AQUÍ! Usamos una versión LTS específica de Ubuntu para mayor estabilidad.
+    runs-on: ubuntu-24.04 
     permissions:
       contents: read
       packages: write # Permiso necesario para escribir en GitHub Container Registry
@@ -47,9 +45,7 @@ jobs:
         with:
           context: ${{ env.DOCKERFILE_CONTEXT }}
           push: true
-          # ¡CAMBIO CRÍTICO AQUÍ! Usamos la variable de entorno directamente sin interpolación de shell
-          tags: |
-            ghcr.io/${{ env.REPO_NAME_LOWER }}:latest
-            ghcr.io/${{ env.REPO_NAME_LOWER }}:${{ github.sha }}
+          # Construimos las etiquetas directamente, asegurando minúsculas para el owner y el nombre del repositorio.
+          tags: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name  }}:latest,ghcr.io/${{ github.repository_owner}}/${{ github.event.repository.name }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
