@@ -14,7 +14,7 @@ env:
   # Esto será "luquitas234/academianovit2025"
   REPO_NAME_LOWER: luquitas234/academianovit2025 # Ajusta esto según tu repositorio real 
   # Ruta al directorio que contiene el Dockerfile (relativa a la raíz del repositorio)
-  DOCKERFILE_CONTEXT: Dokers/Dockerfile # Ajusta esto si tu Dockerfile no está en la raíz del proyecto Web API
+  DOCKERFILE_CONTEXT: .
 
 # Definición de los trabajos (jobs)
 jobs:
