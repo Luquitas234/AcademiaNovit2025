@@ -4,19 +4,22 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
 # Copiar el archivo de la solución (.sln) y los archivos de proyecto (.csproj)
-# Esto permite que Docker cachee la restauración de dependencias si los archivos .csproj no cambian.
+# Ahora, las rutas son relativas a la raíz del repositorio (el nuevo contexto de Docker).
+# Copiamos la solución y los proyectos a /src
+COPY ["AcademiaNovit.sln", "./"] # Copia la solución a la raíz de /src
 COPY ["AcademiaNovit/AcademiaNovit.csproj", "AcademiaNovit/"]
 COPY ["AcademiaNovit.Tests/AcademiaNovit.Tests.csproj", "AcademiaNovit.Tests/"]
-COPY ["AcademiaNovit.sln", "."]
 
 # Restaurar las dependencias de NuGet para todos los proyectos en la solución
 # Esto es esencial para que la compilación tenga todas las bibliotecas necesarias.
 RUN dotnet restore "AcademiaNovit.sln"
 
 # Copiar todo el código fuente de la aplicación
+# Esto copiará el resto de los archivos de tu repositorio al contenedor.
 COPY . .
 
 # Cambiar al directorio del proyecto de la Web API
+# Asegúrate de que esta ruta sea correcta dentro de /src
 WORKDIR /src/AcademiaNovit
 
 # Publicar la aplicación para producción
@@ -32,14 +35,10 @@ FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
 WORKDIR /app
 
 # Exponer el puerto en el que la aplicación ASP.NET Core escuchará.
-# Por defecto, ASP.NET Core en Docker suele escuchar en el puerto 80 (HTTP) y 443 (HTTPS).
-# Aquí exponemos el puerto 80 para el tráfico HTTP.
 EXPOSE 80
 
 # Copiar los archivos publicados desde la etapa 'build' a la imagen final
 COPY --from=build /app/publish .
 
 # Definir el punto de entrada (entrypoint) para la aplicación.
-# Esto es lo que se ejecutará cuando el contenedor se inicie.
-# Reemplaza 'AcademiaNovit.dll' con el nombre real de tu archivo .dll principal si es diferente.
 ENTRYPOINT ["dotnet", "AcademiaNovit.dll"]
