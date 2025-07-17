@@ -1,0 +1,56 @@
+# Nombre del workflow, aparecerá en la interfaz de GitHub Actions
+name: Build & Push Docker Image to GHCR (DEV)
+
+# Evento que dispara el workflow
+# Se ejecutará cada vez que se haga un 'push' a la rama 'development'
+on:
+  push:
+    branches:
+      - development # Asegura que este workflow solo se ejecute para la rama 'development'
+
+# Definición de variables de entorno para el workflow
+env:
+  # Nombre de la imagen Docker en GHCR
+  IMAGE_NAME: academianovit2025 # Puedes cambiar esto si quieres un nombre diferente para la imagen
+  # Ruta al directorio que contiene el Dockerfile (relativa a la raíz del repositorio)
+  # Asegúrate de que esta ruta sea correcta. Si tu Dockerfile está en AcademiaNovit/Dockerfile, usa 'AcademiaNovit'.
+  DOCKERFILE_CONTEXT: AcademiaNovit # <--- ¡AJUSTA ESTO SI TU DOCKERFILE NO ESTÁ EN LA RAÍZ DEL PROYECTO WEB API!
+
+# Definición de los trabajos (jobs)
+jobs:
+  build_and_push_image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # Permiso necesario para escribir en GitHub Container Registry
+
+    steps:
+      # Paso 1: Checkout del repositorio
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      # Paso 2: Configurar Docker Buildx (para builds más eficientes y multi-plataforma)
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Paso 3: Login en GitHub Container Registry (GHCR)
+      # Esto permite que Docker se autentique para pushear la imagen.
+      - name: Login en GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }} # El usuario de GitHub que activó el workflow
+          password: ${{ secrets.GITHUB_TOKEN }} # Token automático de GitHub con permisos para GHCR
+
+      # Paso 4: Construir y Pushear la imagen Docker
+      # Esta acción construye la imagen usando el Dockerfile y la sube a GHCR.
+      - name: Construir y Pushear imagen Docker
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ env.DOCKERFILE_CONTEXT }} # Ruta al directorio del Dockerfile
+          push: true # Indica que la imagen debe ser pusheada al registry
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
+            ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ github.sha }} # Tag con el SHA del commit para versiones específicas
+          cache-from: type=gha # Habilita el cache de GitHub Actions para builds más rápidos
+          cache-to: type=gha,mode=max # Guarda el cache para futuras builds
