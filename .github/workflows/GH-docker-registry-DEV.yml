@@ -12,7 +12,7 @@ on:
 env:
   # Nombre de la imagen Docker en GHCR
   # Convertimos el nombre del repositorio a minúsculas para cumplir con los requisitos de GHCR
-  IMAGE_NAME: academianovit2025 # Ajusta esto según el nombre de tu imagen Docker 
+  IMAGE_NAME: academiaNovit2025 # Ajusta esto según el nombre de tu imagen Docker 
   # Ruta al directorio que contiene el Dockerfile (relativa a la raíz del repositorio)
   DOCKERFILE_CONTEXT: AcademiaNovit # Ajusta esto si tu Dockerfile no está en la raíz del proyecto Web API
 
