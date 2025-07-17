@@ -12,7 +12,7 @@ on:
 env:
   # Nombre completo del repositorio en minúsculas para usar en las etiquetas de la imagen
   # Esto será "luquitas234/academianovit2025"
-  REPO_NAME_LOWER: ${{ github.repository.lower}} 
+  REPO_NAME_LOWER: ${{ github.repository}} 
   # Ruta al directorio que contiene el Dockerfile (relativa a la raíz del repositorio)
   DOCKERFILE_CONTEXT: AcademiaNovit # Ajusta esto si tu Dockerfile no está en la raíz del proyecto Web API
 
