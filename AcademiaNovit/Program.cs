@@ -29,6 +29,7 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connect
 
 builder.Services.AddOpenApi();
 
+builder.Services.AddScalarApiReference();
 
 builder.Services.AddControllers();
 
@@ -43,7 +44,7 @@ using (var scope = app.Services.CreateScope())
 app.MapControllers();
 
 app.MapOpenApi();
-app.MapScalarApiReference();
+app.MapScalarApiReference("/docs");
 
 
 
