@@ -28,7 +28,6 @@ string connectionString = builder.Configuration.GetConnectionString("DefaultConn
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 
 builder.Services.AddOpenApi();
-
 builder.Services.AddScalarApiReference();
 
 builder.Services.AddControllers();
@@ -42,6 +41,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.MapControllers();
+
 
 app.MapOpenApi();
 app.MapScalarApiReference("/docs");
