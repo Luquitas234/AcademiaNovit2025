@@ -5,15 +5,38 @@ version: '3.8'
 services:
   # Servicio para tu Web API
   webapi:
-    image: ghcr.io/luquitas234/academianovit2025:latest
+    image: ghcr.io/luquitas234/academianovit2025:latest # Asegúrate de que 'luquitas234' sea tu usuario de GitHub
     ports:
       - "8080:80" # Mapea el puerto 8080 del host al 80 del contenedor
     environment:
       - ASPNETCORE_URLS=http://+:80
       - ASPNETCORE_ENVIRONMENT=Development
-      # ¡CADENA DE CONEXIÓN ACTUALIZADA!
-      # Ahora, el host es 'host.docker.internal' para conectar al PostgreSQL que corre en tu máquina host.
-      # Asegúrate de que 'datos', 'admin' y 'tivon1234' coincidan con la configuración de tu PostgreSQL.
-      - ConnectionStrings__DefaultConnection=Host=host.docker.internal;Port=5432;Database=datos;Username=admin;Password=tivon1234 # <--- ¡AJUSTA ESTA CADENA DE CONEXIÓN!
+      # ¡CADENA DE CONEXIÓN!
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=datos;Username=admin;Password=tivon1234 # <--- ¡AJUSTA ESTA CADENA DE CONEXIÓN SI ES DIFERENTE!
     restart: always
     container_name: academianovit_webapi
+    # Asegura que el servicio 'db' (PostgreSQL) se inicie antes que 'webapi'.
+    depends_on:
+      - db
+
+  # ¡NUEVO SERVICIO INTEGRADO! Servicio para la base de datos PostgreSQL
+  db:
+    image: postgres:15-alpine # Usamos una imagen ligera y estable de PostgreSQL
+    environment:
+      # Variables de entorno para configurar PostgreSQL.
+      
+      POSTGRES_DB: datos      # Nombre de la base de datos
+      POSTGRES_USER: admin     # Usuario de la base de datos
+      POSTGRES_PASSWORD: tivon1234 # Contraseña del usuario
+    ports:
+      - "5432:5432" # Mapea el puerto 5432 del host al 5432 del contenedor (útil para acceder con pgAdmin, etc.)
+    volumes:
+      # Persistencia de datos: Guarda los datos de la base de datos en un volumen Docker.
+      # Esto evita que pierdas tus datos cada vez que el contenedor 'db' se detiene/reinicia.
+      - db_data:/var/lib/postgresql/data
+    restart: always
+    container_name: academianovit_db
+
+# Definición de volúmenes para persistencia de datos
+volumes:
+  db_data: # Volumen para los datos de PostgreSQL
