@@ -44,7 +44,7 @@ app.MapControllers();
 
 
 app.MapOpenApi();
-app.MapScalarApiReference("/docs");
+app.MapScalarApiReference();
 
 
 
