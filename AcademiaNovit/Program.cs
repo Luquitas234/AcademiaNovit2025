@@ -28,6 +28,11 @@ string connectionString = builder.Configuration.GetConnectionString("DefaultConn
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 
 builder.Services.AddOpenApi();
+builder.Services.AddScalarApiReference(options =>
+    {
+        options.RoutePrefix = "docs"; // La UI de Scalar estará en /docs
+        options.SpecUrl = "/openapi.json"; // Asegura que apunte al JSON de OpenAPI
+    });
 
 builder.Services.AddControllers();
 
