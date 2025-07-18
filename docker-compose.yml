@@ -1,0 +1,31 @@
+# Versión de la sintaxis de Docker Compose
+version: '3.8'
+
+# Definición de los servicios (contenedores) que componen tu aplicación
+services:
+  # Nombre del servicio para tu Web API
+  webapi:
+    # La imagen Docker a utilizar.
+    # Reemplaza 'luquitas234' con tu nombre de usuario de GitHub real.
+    # 'academianovit2025' es el nombre de la imagen que subiste.
+    # ':latest' indica que use la última versión etiquetada como 'latest'.
+    image: ghcr.io/luquitas234/academianovit2025:latest # <--- ¡REEMPLAZA 'luquitas234' CON TU USUARIO DE GITHUB!
+
+    # Mapeo de puertos: <puerto_host>:<puerto_contenedor>
+    # Esto expone el puerto 80 del contenedor al puerto 80 del host.
+    # Si el puerto 80 ya está en uso en tu máquina, puedes cambiar el puerto del host (ej. "8080:80").
+    ports:
+      - "80:80"
+
+    # Variables de entorno para el contenedor
+    environment:
+      # Configura el puerto en el que ASP.NET Core escuchará dentro del contenedor.
+      - ASPNETCORE_URLS=http://+:80
+      # Configura el ambiente de ASP.NET Core. Para pruebas locales, Development es útil.
+      - ASPNETCORE_ENVIRONMENT=Development
+
+    # Reinicia el contenedor si se detiene, a menos que se detenga manualmente.
+    restart: always
+
+    # Opcional: Nombre del contenedor para facilitar la identificación
+    container_name: academianovit_webapi
