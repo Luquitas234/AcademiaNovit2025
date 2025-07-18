@@ -28,7 +28,6 @@ string connectionString = builder.Configuration.GetConnectionString("DefaultConn
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 
 builder.Services.AddOpenApi();
-builder.Services.AddScalarApiReference();
 
 builder.Services.AddControllers();
 
@@ -40,13 +39,10 @@ using (var scope = app.Services.CreateScope())
     dbContext.Database.Migrate();
 }
 
-app.MapControllers();
-
-
 app.MapOpenApi();
 app.MapScalarApiReference();
 
-
+app.MapControllers();
 
 #region keep alive endpoint
 
