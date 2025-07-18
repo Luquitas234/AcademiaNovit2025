@@ -39,10 +39,13 @@ using (var scope = app.Services.CreateScope())
     dbContext.Database.Migrate();
 }
 
-app.MapOpenApi();
-app.MapScalarApiReference();
 
 app.MapControllers();
+
+app.MapOpenApi();
+app.MapScalarApiReference("/docs");
+
+
 
 #region keep alive endpoint
 
