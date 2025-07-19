@@ -1,0 +1,71 @@
+# Nombre del workflow, aparecerá en la pestaña "Actions" de GitHub
+name: Deploy Web API to VM (DEV)
+
+# Configura cuándo se ejecutará este workflow
+on:
+  # Descomenta la línea 'push' si quieres que se ejecute automáticamente
+  # cada vez que se haga push a la rama 'development'.
+  # push:
+  #   branches:
+  #     - development
+  # Puedes activar el workflow manualmente desde la interfaz de GitHub Actions
+  workflow_dispatch:
+
+# Permisos necesarios para el workflow
+permissions:
+  contents: read # Permite leer el código del repositorio
+  packages: write # Permite escribir en GitHub Packages (GHCR) para autenticación
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest # Ejecuta el job en un runner de Ubuntu
+
+    steps:
+      # Paso 1: Checkout del código fuente
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Paso 2: Iniciar sesión en GitHub Container Registry (GHCR)
+      # Esto es necesario para poder descargar la imagen de tu Web API.
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }} # Tu nombre de usuario de GitHub
+          password: ${{ secrets.GITHUB_TOKEN }} # Token automático de GitHub Actions
+
+      # Paso 3: Configurar la conexión SSH a la VM
+      # Usamos un action que configura ssh-agent para manejar la clave privada
+      - name: Setup SSH connection
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      # Paso 4: Desplegar la aplicación en la VM
+      # Este paso se conecta a tu VM y ejecuta los comandos Docker Compose.
+      - name: Deploy to VM
+        uses: appleboy/ssh-action@master # Action para ejecutar comandos SSH remotos
+        with:
+          host: ${{ secrets.VM_HOST }} # Host de Ngrok (desde secretos)
+          username: ${{ secrets.VM_USERNAME }} # Usuario SSH de tu VM (desde secretos)
+          key: ${{ secrets.SSH_PRIVATE_KEY }} # Clave privada SSH (desde secretos)
+          port: ${{ secrets.VM_SSH_PORT }} # Puerto de Ngrok para SSH (desde secretos)
+          script: |
+            echo "Navegando al directorio del repositorio..."
+            # Asegúrate de que esta sea la ruta correcta en tu VM donde clonarás el repo
+            cd ~/AcademiaNovit2025
+
+            echo "Deteniendo servicios Docker Compose existentes..."
+            docker-compose down # Detiene y elimina los contenedores actuales
+
+            echo "Descargando la última imagen de la Web API..."
+            docker-compose pull # Descarga la última versión de la imagen desde GHCR
+
+            echo "Levantando los servicios Docker Compose..."
+            docker-compose up -d # Levanta los servicios en modo detached
+
+            echo "Limpiando imágenes Docker antiguas (opcional)..."
+            docker image prune -f # Elimina imágenes sin usar para liberar espacio
+            docker container prune -f # Elimina contenedores detenidos
+
+            echo "Despliegue completado en la VM."
