@@ -5,9 +5,9 @@ name: Deploy Web API to VM (DEV)
 on:
   # Descomenta la línea 'push' si quieres que se ejecute automáticamente
   # cada vez que se haga push a la rama 'development'.
-  # push:
-  #   branches:
-  #     - development
+  push:
+    branches:
+       - development
   # Puedes activar el workflow manualmente desde la interfaz de GitHub Actions
   workflow_dispatch:
 
