@@ -1,4 +1,4 @@
-# Nombre del workflow, aparecerá en la pestaña "Actions" de GitHub actions
+# Nombre del workflow, aparecerá en la pestaña "Actions" de GitHub
 name: Deploy Web API to VM (DEV)
 
 # Configura cuándo se ejecutará este workflow
@@ -51,3 +51,21 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }} # Clave privada SSH (desde secretos)
           port: ${{ secrets.VM_SSH_PORT }} # Puerto de Ngrok para SSH (desde secretos)
           script: |
+            echo "Navegando al directorio del repositorio..."
+            # Asegúrate de que esta sea la ruta correcta en tu VM donde clonarás el repo
+            cd ~/AcademiaNovit2025
+
+            echo "Deteniendo servicios Docker Compose existentes..."
+            docker-compose down # Detiene y elimina los contenedores actuales
+
+            echo "Descargando la última imagen de la Web API..."
+            docker-compose pull # Descarga la última versión de la imagen desde GHCR
+
+            echo "Levantando los servicios Docker Compose..."
+            docker-compose up -d # Levanta los servicios en modo detached
+
+            echo "Limpiando imágenes Docker antiguas (opcional)..."
+            docker image prune -f # Elimina imágenes sin usar para liberar espacio
+            docker container prune -f # Elimina contenedores detenidos
+
+            echo "Despliegue completado en la VM."
