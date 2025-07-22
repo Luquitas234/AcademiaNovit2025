@@ -7,7 +7,7 @@ services:
   webapi:
     # La imagen Docker que se usará para este servicio.
     # Asegúrate de que esta imagen ya haya sido construida y subida a GHCR.
-    image: ghcr.io/luquitas234/academianovit2025/webapi:development
+    image: ghcr.io/luquitas234/academianovit2025:latest
     
     # Mapeo de puertos: el puerto 8080 del contenedor se mapea al puerto 8080 del host del Swarm.
     # Esto permite acceder a la API desde fuera del contenedor.
