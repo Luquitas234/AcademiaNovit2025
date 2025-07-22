@@ -6,47 +6,77 @@ services:
   # Servicio para la Web API
   webapi:
     # La imagen Docker que se usará para este servicio.
-    # Asegúrate de que esta imagen ya haya sido construida y subida a GHCR.
     image: ghcr.io/luquitas234/academianovit2025:latest
     
-    # Mapeo de puertos: el puerto 8080 del contenedor se mapea al puerto 8080 del host del Swarm.
-    # Esto permite acceder a la API desde fuera del contenedor.
+    # Mapeo de puertos: el puerto 8080 del host del Swarm se mapea al puerto 8080 del contenedor.
     ports:
       - "8080:8080"
     
     # Configuración de despliegue específica para Docker Swarm
     deploy:
-      # Número de réplicas (instancias) de este servicio que Swarm mantendrá en ejecución.
-      # Para la entrega, se solicitan 5 réplicas.
-      replicas: 5
-      
-      # Estrategia de reinicio para las réplicas del servicio
+      replicas: 5 # Número de réplicas de la Web API
       restart_policy:
-        condition: on-failure # Reinicia la réplica si falla
-        delay: 5s             # Espera 5 segundos antes de intentar reiniciar
-        max_attempts: 3       # Intenta reiniciar hasta 3 veces
-        window: 120s          # Considera un fallo dentro de una ventana de 120 segundos
-      
-      # Recursos asignados a cada réplica del servicio
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
       resources:
         limits:
-          cpus: '0.5' # Limita el uso de CPU a 0.5 (la mitad de un núcleo)
-          memory: 256M # Limita la memoria a 256 MB
+          cpus: '0.5'
+          memory: 256M
         reservations:
-          cpus: '0.25' # Reserva 0.25 de CPU para asegurar un rendimiento mínimo
-          memory: 128M # Reserva 128 MB de memoria
+          cpus: '0.25'
+          memory: 128M
 
     # Variables de entorno para el contenedor de la Web API
     environment:
-      - ASPNETCORE_URLS=http://+:8080 # Configura la URL donde la aplicación escuchará
-      # Asegúrate de que estas variables de entorno coincidan con las que tu API necesita
-      # - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=mydatabase;Username=myuser;Password=mypassword
-      # - SomeOtherSetting=value
+      - ASPNETCORE_URLS=http://+:8080
+      # ¡CADENA DE CONEXIÓN CRÍTICA!
+      # Ahora, el host de la base de datos es 'db', que es el nombre del servicio PostgreSQL
+      # definido en este mismo archivo docker-swarm.yml.
+      # Asegúrate de que 'datos', 'admin' y 'tivon1234' coincidan con la configuración que usas.
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=datos;Username=admin;Password=tivon1234
+    
+    # Asegura que el servicio 'db' (PostgreSQL) se inicie antes que 'webapi'.
+    depends_on:
+      - db
 
-# Definición de las redes que usarán los servicios.
-# Esto es opcional si solo tienes un servicio y no necesitas comunicación entre ellos.
-networks:
-  default:
-    # Usar un driver overlay para que las réplicas puedan comunicarse entre nodos (si hubiera más de uno)
-    # y para el balanceo de carga interno de Swarm.
-    driver: overlay
+  # ¡NUEVO SERVICIO! Servicio para la base de datos PostgreSQL dentro del Swarm
+  db:
+    image: postgres:15-alpine # Usamos una imagen ligera y estable de PostgreSQL
+    
+    # Configuración de despliegue para el servicio de base de datos
+    deploy:
+      replicas: 1 # Generalmente, solo necesitas una réplica para la base de datos
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M # La base de datos puede necesitar más memoria
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+    # Variables de entorno para configurar PostgreSQL
+    # ¡AJUSTA ESTOS VALORES! DEBEN COINCIDIR con los de tu cadena de conexión en 'webapi'.
+    environment:
+      POSTGRES_DB: datos      # Nombre de la base de datos
+      POSTGRES_USER: admin     # Usuario de la base de datos
+      POSTGRES_PASSWORD: tivon1234 # Contraseña del usuario
+    
+    # Mapeo de puertos: Opcional, pero útil para acceder a la DB desde el host (ej. con pgAdmin)
+    ports:
+      - "5432:5432"
+    
+    # Persistencia de datos: Guarda los datos de la base de datos en un volumen Docker.
+    # Esto evita que pierdas tus datos cada vez que el contenedor se detiene/reinicia.
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+# Definición de volúmenes para persistencia de datos
+volumes:
+  db_data: # Volumen para los datos de PostgreSQL
