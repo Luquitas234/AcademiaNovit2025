@@ -8,7 +8,7 @@ COPY AcademiaNovit.sln ./
 COPY AcademiaNovit/AcademiaNovit.csproj AcademiaNovit/
 COPY AcademiaNovit.Tests/AcademiaNovit.Tests.csproj AcademiaNovit.Tests/
 
-# Restaurar las dependencias de NuGet para todos los proyectos en la solución
+# Restaurar las dependencias de NuGet para todos los proyectos en la solución 
 RUN dotnet restore AcademiaNovit.sln
 
 # Copiar todo el código fuente de la aplicación
