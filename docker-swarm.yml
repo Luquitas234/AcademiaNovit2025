@@ -1,0 +1,52 @@
+# Versión de la sintaxis de Docker Compose para Swarm
+version: '3.8'
+
+# Definición de los servicios que se desplegarán en el Swarm
+services:
+  # Servicio para la Web API
+  webapi:
+    # La imagen Docker que se usará para este servicio.
+    # Asegúrate de que esta imagen ya haya sido construida y subida a GHCR.
+    image: ghcr.io/luquitas234/academianovit2025/webapi:development
+    
+    # Mapeo de puertos: el puerto 8080 del contenedor se mapea al puerto 8080 del host del Swarm.
+    # Esto permite acceder a la API desde fuera del contenedor.
+    ports:
+      - "8080:8080"
+    
+    # Configuración de despliegue específica para Docker Swarm
+    deploy:
+      # Número de réplicas (instancias) de este servicio que Swarm mantendrá en ejecución.
+      # Para la entrega, se solicitan 5 réplicas.
+      replicas: 5
+      
+      # Estrategia de reinicio para las réplicas del servicio
+      restart_policy:
+        condition: on-failure # Reinicia la réplica si falla
+        delay: 5s             # Espera 5 segundos antes de intentar reiniciar
+        max_attempts: 3       # Intenta reiniciar hasta 3 veces
+        window: 120s          # Considera un fallo dentro de una ventana de 120 segundos
+      
+      # Recursos asignados a cada réplica del servicio
+      resources:
+        limits:
+          cpus: '0.5' # Limita el uso de CPU a 0.5 (la mitad de un núcleo)
+          memory: 256M # Limita la memoria a 256 MB
+        reservations:
+          cpus: '0.25' # Reserva 0.25 de CPU para asegurar un rendimiento mínimo
+          memory: 128M # Reserva 128 MB de memoria
+
+    # Variables de entorno para el contenedor de la Web API
+    environment:
+      - ASPNETCORE_URLS=http://+:8080 # Configura la URL donde la aplicación escuchará
+      # Asegúrate de que estas variables de entorno coincidan con las que tu API necesita
+      # - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=mydatabase;Username=myuser;Password=mypassword
+      # - SomeOtherSetting=value
+
+# Definición de las redes que usarán los servicios.
+# Esto es opcional si solo tienes un servicio y no necesitas comunicación entre ellos.
+networks:
+  default:
+    # Usar un driver overlay para que las réplicas puedan comunicarse entre nodos (si hubiera más de uno)
+    # y para el balanceo de carga interno de Swarm.
+    driver: overlay
