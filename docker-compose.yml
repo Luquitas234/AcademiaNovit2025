@@ -34,15 +34,17 @@ services:
   nodeexporter:
     image: prom/node-exporter:latest
     container_name: nodeexporter
+    ports:
+      - "9100:9100" 
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
       - /:/host/rootfs:ro
     command:
-      - '--web.listen-address=0.0.0.0:9100'
+      
       - '--collector.filesystem.mount-points-exclude=^/(dev|proc|sys|var/lib/docker/.+|var/lib/kubelet/pods/.+)($$|/)'
     restart: always
-    network_mode: host
+    
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
