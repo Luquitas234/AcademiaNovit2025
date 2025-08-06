@@ -6,8 +6,6 @@ services:
   # Servicio para tu Web API
   webapi:
     image: ghcr.io/luquitas234/academianovit2025:latest
-    ports:
-      - "8080:80"
     environment:
       - ASPNETCORE_URLS=http://+:80
       - ASPNETCORE_ENVIRONMENT=Development
