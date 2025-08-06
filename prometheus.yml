@@ -1,22 +1,26 @@
-# Configuración global de Prometheus
+# my global config
 global:
-  scrape_interval: 15s # Intervalo de tiempo para recolectar métricas
+  scrape_interval: 15s # Establece el intervalo de scrapeo por defecto en 15 segundos.
+  evaluation_interval: 15s # Evalúa las reglas cada 15 segundos.
 
-# Configuración de los trabajos de recolección (scrape jobs)
+# Ascrape configuration for prometheus
 scrape_configs:
-  # Trabajo para recolectar métricas de Node Exporter (del host)
-  - job_name: 'node-exporter'
-    # Node Exporter se ejecuta en modo host, por lo que lo scrapeamos en localhost
-    static_configs:
-      - targets: ['localhost:9100']
-
-  # Trabajo para recolectar métricas de cAdvisor (de los contenedores)
-  - job_name: 'cadvisor'
-    # cAdvisor se ejecuta como un servicio Docker, Prometheus lo accede por el nombre del servicio
-    static_configs:
-      - targets: ['cadvisor:8080']
-
-  # Trabajo para recolectar métricas de Prometheus (automonitoreo)
+  # Job para el propio Prometheus
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
+
+  # Job para Node Exporter (métricas del sistema host)
+  - job_name: 'node_exporter'
+    static_configs:
+      - targets: ['localhost:9100']
+
+  # Job para cAdvisor (métricas de contenedores)
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+
+  # Job para  Web API (con 5 réplicas)
+  - job_name: 'academianovit_webapi'
+    static_configs:
+      - targets: ['cadvisor:8080']

@@ -5,38 +5,93 @@ version: '3.8'
 services:
   # Servicio para tu Web API
   webapi:
-    image: ghcr.io/luquitas234/academianovit2025:latest # Asegúrate de que 'luquitas234' sea tu usuario de GitHub
+    image: ghcr.io/luquitas234/academianovit2025:latest
     ports:
-      - "8080:80" # Mapea el puerto 8080 del host al 80 del contenedor
+      - "8080:80"
     environment:
       - ASPNETCORE_URLS=http://+:80
       - ASPNETCORE_ENVIRONMENT=Development
-      # ¡CADENA DE CONEXIÓN!
-      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=datos;Username=admin;Password=tivon1234 # <--- ¡AJUSTA ESTA CADENA DE CONEXIÓN SI ES DIFERENTE!
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=datos;Username=admin;Password=tivon1234
     restart: always
     container_name: academianovit_webapi
-    # Asegura que el servicio 'db' (PostgreSQL) se inicie antes que 'webapi'.
     depends_on:
       - db
 
-  # ¡NUEVO SERVICIO INTEGRADO! Servicio para la base de datos PostgreSQL
+  # Servicio para la base de datos PostgreSQL
   db:
-    image: postgres:15-alpine # Usamos una imagen ligera y estable de PostgreSQL
+    image: postgres:15-alpine
     environment:
-      # Variables de entorno para configurar PostgreSQL.
-      
-      POSTGRES_DB: datos      # Nombre de la base de datos
-      POSTGRES_USER: admin     # Usuario de la base de datos
-      POSTGRES_PASSWORD: tivon1234 # Contraseña del usuario
+      POSTGRES_DB: datos
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: tivon1234
     ports:
-      - "5432:5432" # Mapea el puerto 5432 del host al 5432 del contenedor (útil para acceder con pgAdmin, etc.)
+      - "5432:5432"
     volumes:
-      # Persistencia de datos: Guarda los datos de la base de datos en un volumen Docker.
-      # Esto evita que pierdas tus datos cada vez que el contenedor 'db' se detiene/reinicia.
       - db_data:/var/lib/postgresql/data
     restart: always
     container_name: academianovit_db
 
+  # ---------------------------------------------
+  # Servicios de Monitoreo
+  # ---------------------------------------------
+  nodeexporter:
+    image: prom/node-exporter:latest
+    container_name: nodeexporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/host/rootfs:ro
+    command:
+      - '--path.proc=/host/proc'
+      - '--path.sys=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(dev|proc|sys|var/lib/docker/.+|var/lib/kubelet/pods/.+)($$|/)'
+    restart: always
+    network_mode: host
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    volumes:
+      - /:/root:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    restart: always
+    privileged: true
+    depends_on:
+      - nodeexporter
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    restart: always
+    depends_on:
+      - nodeexporter
+      - cadvisor
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    restart: always
+    depends_on:
+      - prometheus
+
 # Definición de volúmenes para persistencia de datos
 volumes:
-  db_data: # Volumen para los datos de PostgreSQL
+  db_data:
+  prometheus_data:
+  grafana_data:
