@@ -13,7 +13,6 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=datos;Username=admin;Password=tivon1234
     restart: always
-    container_name: academianovit_webapi
     depends_on:
       - db
 
