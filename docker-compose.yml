@@ -97,7 +97,7 @@ services:
       NGROK_AUTHTOKEN: '2yL5vQDfrexGzOwPtf7wUEtqrFz_3jyRMoXHLaRq85E3MnpPE' # token Real
     command: ["http", "webapi:80"]
     ports:
-      - "4040:4040"
+      - "4041:4040"
     restart: always
     depends_on:
       - webapi
