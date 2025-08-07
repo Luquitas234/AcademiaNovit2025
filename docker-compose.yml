@@ -87,6 +87,20 @@ services:
     restart: always
     depends_on:
       - prometheus
+  # ---------------------------------------------
+  # Servicio de Ngrok
+  # ---------------------------------------------
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: ngrok
+    environment:
+      NGROK_AUTHTOKEN: '2yL5vQDfrexGzOwPtf7wUEtqrFz_3jyRMoXHLaRq85E3MnpPE' # token Real
+    command: ["http", "webapi:80"]
+    ports:
+      - "4040:4040"
+    restart: always
+    depends_on:
+      - webapi
 
 # Definición de volúmenes para persistencia de datos
 volumes:
